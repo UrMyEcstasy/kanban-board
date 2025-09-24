@@ -18,31 +18,45 @@
               class="modal__input"
               required
           />
+          <!--   добавил реактивную ошибку и пропадание кнопки, если количество введенных символов в названии и описании меньше 5
+          ( и в статусе и в таске и тут)-->
+
+          <p v-if="errorsInBoardName.name" class="error-message">{{ errorsInBoardName.name }}</p>
+
         </div>
 
-        <div class="form-group">
-          <label for="board-description">Description</label>
+        <div class="form-group ">
+          <label for="board-description">Description <span class="required">*</span></label>
           <textarea
               id="board-description"
               placeholder="Enter board description"
               v-model="form.description"
               class="modal__input"
+              required
           ></textarea>
+
+          <p v-if="errorsInBoardDescription.name" class="error-message">{{ errorsInBoardDescription.name }}</p>
+
         </div>
 
         <div class="modal__buttons">
           <button type="button" class="cancel-btn" @click="$emit('close')">Cancel</button>
-          <button type="submit" class="submit-btn">
+          <button v-if="!hasErrors" type="submit" class="submit-btn">
             {{ form.id ? 'Save changes' : 'Create Board' }}
           </button>
         </div>
+
+
+
+
       </form>
     </div>
   </div>
 </template>
 
 <script setup>
-import {reactive, watch} from 'vue'
+import {computed, reactive, watch} from 'vue'
+
 
 const props = defineProps({
   visible: Boolean,
@@ -59,6 +73,39 @@ const initialForm = {
 
 const form = reactive({...initialForm})
 
+const errorsInBoardName = reactive({
+  name: ''
+})
+
+const errorsInBoardDescription = reactive({
+  name: ''
+})
+
+const validateName = (value) => {
+  if (!value) return "Board name is required"
+  if (value.length < 5) return "Name must be at least 5 characters long"
+  return ""
+}
+
+const validateDescription = (value) => {
+  if (!value) return "Description is required"
+  if (value.length < 5) return "Description must be at least 5 characters long"
+  return ""
+}
+
+const runValidation = () => {
+  errorsInBoardName.name = validateName(form.name)
+  errorsInBoardDescription.name = validateDescription(form.description)
+}
+
+watch(() => form.name, (newValue) => {
+  errorsInBoardName.name = validateName(newValue)
+})
+
+watch(() => form.description, (newValue) => {
+  errorsInBoardDescription.name = validateDescription(newValue)
+})
+
 watch(
     () => props.board,
     (newBoard) => {
@@ -69,12 +116,22 @@ watch(
       } else {
         Object.assign(form, {...initialForm})
       }
+      runValidation()
     },
     {immediate: true}
 )
 
+const hasErrors = computed(() =>
+    errorsInBoardName.name || errorsInBoardDescription.name
+)
+
+
+
 const submit = () => {
+  runValidation()
+  if (!errorsInBoardName.name && !errorsInBoardDescription){
   emit('save', {...form})
+  }
 }
 </script>
 
@@ -183,5 +240,15 @@ button {
 
 .required {
   color: red;
+}
+
+.error-message {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

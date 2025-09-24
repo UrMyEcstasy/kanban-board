@@ -1,5 +1,36 @@
+
+<template>
+  <div class="modal" @click.self="emit('close')">
+    <div class="modal__container">
+      <button class="modal__close" @click="emit('close')">✖</button>
+
+      <form @submit.prevent="submit" class="modal__form">
+        <h2 class="modal__title">Add new status</h2>
+
+
+        <label for="status-title">Title<span class="required">*</span></label>
+        <input
+            v-model="form.title"
+            id="status-title"
+            type="text"
+            class="modal__input"
+            placeholder="New status"
+            required
+        />
+        <p v-if="errorsInStatus.name" class="error-message">{{ errorsInStatus.name }}</p>
+
+        <div class="modal__buttons">
+          <button v-if="!hasErrors"  type="submit" class="submit-btn">Enter</button>
+          <button type="button" class="cancel-btn" @click="emit('close')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+
 <script setup>
-import {ref} from 'vue'
+import {computed, reactive, ref, watch} from 'vue'
 
 const emit = defineEmits(['close', 'add-status'])
 
@@ -8,11 +39,29 @@ const form = ref({
   id: ''
 })
 
+const errorsInStatus = reactive({
+  name: ''
+})
+
+const validateStatus= (value) => {
+  if (!value) return "Title is required"
+  if (value.length < 5) return "Title must be at least 5 characters long"
+  return ""
+}
+
+const runValidation = () => {
+  errorsInStatus.name = validateStatus(form.value.title)
+}
+
+watch(() => form.value.title, (newValue) => {
+  errorsInStatus.name = validateStatus(newValue)}, { immediate: true })
+
 const generateId = (title) => {
   return title.toLowerCase().replace(/\s+/g, '_')
 }
 
 const submit = async () => {
+  runValidation()
   if (!form.value.title.trim()) {
     alert('New status')
     return
@@ -21,6 +70,7 @@ const submit = async () => {
   form.value.id = generateId(form.value.title)
 
   try {
+
     emit('add-status', {
       title: form.value.title,
       id: form.value.id
@@ -31,33 +81,11 @@ const submit = async () => {
     alert('Не удалось создать статус. Подробности в консоли.')
   }
 }
+
+const hasErrors = computed(() =>
+    errorsInStatus.name
+)
 </script>
-
-<template>
-  <div class="modal" @click.self="emit('close')">
-    <div class="modal__container">
-      <button class="modal__close" @click="emit('close')">✖</button>
-
-      <form @submit.prevent="submit" class="modal__form">
-        <h2 class="modal__title">Add new status</h2>
-
-        <input
-            v-model="form.title"
-            id="status-title"
-            type="text"
-            class="modal__input"
-            placeholder="New status"
-            required
-        />
-
-        <div class="modal__buttons">
-          <button type="submit" class="submit-btn">Enter</button>
-          <button type="button" class="cancel-btn" @click="emit('close')">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 
@@ -159,5 +187,19 @@ button {
 
 .cancel-btn:hover {
   background-color: #db1010;
+}
+
+.required {
+  color: red;
+}
+
+.error-message {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
