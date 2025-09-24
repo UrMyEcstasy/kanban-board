@@ -20,6 +20,7 @@
               required
               class="modal__input"
           />
+          <p v-if="errorsInTaskTitle.name" class="error-message">{{ errorsInTaskTitle.name }}</p>
         </div>
 
         <div class="form-group">
@@ -31,6 +32,7 @@
               required
               class="modal__input"
           />
+          <p v-if="errorsInDate.name" class="error-message">{{ errorsInDate.name }}</p>
         </div>
 
         <div class="form-group">
@@ -42,11 +44,12 @@
               required
               class="modal__input"
           ></textarea>
+          <p v-if="errorsInTaskDescription.name" class="error-message">{{ errorsInTaskDescription.name }}</p>
         </div>
 
         <div class="modal__buttons">
           <button type="button" class="cancel-btn" @click="$emit('close')">Cancel</button>
-          <button type="submit" class="submit-btn">
+          <button v-if="!hasErrors" type="submit" class="submit-btn">
             {{ isEditMode ? 'Save changes' : 'Save task' }}
           </button>
         </div>
@@ -57,7 +60,7 @@
 
 
 <script setup>
-import {ref, watch, computed} from 'vue'
+import {ref, watch, computed, reactive} from 'vue'
 
 const props = defineProps({
   task: Object,
@@ -79,7 +82,58 @@ const form = ref({...initialForm})
 
 const isEditMode = computed(() => !!form.value.id)
 
+
+const errorsInTaskTitle = reactive({
+  name: ''
+})
+
+const errorsInDate = reactive({
+  name: ''
+})
+
+const errorsInTaskDescription = reactive({
+  name: ''
+})
+
+const validateTitle = (value) => {
+  if (!value) return "Title is required"
+  if (value.length < 5) return "Title must be at least 5 characters long"
+  return ""
+}
+
+const validateDescription = (value) => {
+  if (!value) return "Description is required"
+  if (value.length < 5) return "Description must be at least 5 characters long"
+  return ""
+}
+const validateDate = (value) => {
+  if (!value) return "Date is required"
+  return ""
+}
+
+const runValidation = () => {
+  errorsInTaskTitle.name = validateTitle(form.value.title)
+  errorsInTaskDescription.name = validateDescription(form.value.description)
+  errorsInDate.name = validateDate(form.value.due_date)
+}
+
+watch(() => form.value.title, (newValue) => {
+  errorsInTaskTitle.name = validateTitle(newValue)
+})
+
+watch(() => form.value.description, (newValue) => {
+  errorsInTaskDescription.name = validateDescription(newValue)
+})
+
+watch(() => form.value.due_date, (newValue) => {
+  errorsInDate.name = validateDate(newValue)
+})
+
+
+
+
 watch(() => props.task, (task) => {
+  runValidation()
   if (task) {
     form.value = {
       ...task,
@@ -92,6 +146,7 @@ watch(() => props.task, (task) => {
 }, {immediate: true})
 
 watch(() => props.currentColumnId, (newId) => {
+  runValidation()
   if (!isEditMode.value) {
     form.value.column_id = newId
   }
@@ -104,7 +159,13 @@ function resetForm() {
   }
 }
 
+const hasErrors = computed(() =>
+    errorsInTaskTitle.name || errorsInTaskDescription.name || errorsInDate.name
+)
+
+
 const submit = () => {
+  runValidation()
   const taskData = {...form.value}
   emit('save', taskData)
 }
@@ -221,5 +282,15 @@ button {
 
 .required {
   color: red;
+}
+
+.error-message {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

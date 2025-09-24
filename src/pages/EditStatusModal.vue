@@ -6,17 +6,21 @@
       <form @submit.prevent="handleSubmit" class="modal__form">
         <h2 class="modal__title">Edit status</h2>
 
+
+        <label for="status-title">Title<span class="required">*</span></label>
         <input
+            id="status-title"
             type="text"
             v-model="statusName"
-            required
             placeholder="Enter status name"
             class="modal__input"
+            required
         />
+        <p v-if="errorsInStatus.name" class="error-message">{{ errorsInStatus.name }}</p>
 
         <div class="modal__buttons">
           <button type="button" class="cancel-btn" @click="$emit('close')">Cancel</button>
-          <button type="submit" class="submit-btn">Save</button>
+          <button  v-if="!hasErrors" type="submit" class="submit-btn">Save</button>
         </div>
       </form>
     </div>
@@ -24,7 +28,7 @@
 </template>
 
 <script setup>
-import {ref, watch} from 'vue'
+import {computed, reactive, ref, watch} from 'vue'
 
 const props = defineProps({
   status: Object
@@ -34,14 +38,40 @@ const emit = defineEmits(['close', 'update-status'])
 
 const statusName = ref(props.status?.name || '')
 
+const errorsInStatus = reactive({
+  name: ''
+})
+
+const validateStatus= (value) => {
+  if (!value) return "Title is required"
+  if (value.length < 5) return "Title must be at least 5 characters long"
+  return ""
+}
+
+const runValidation = () => {
+  errorsInStatus.name = validateStatus(statusName.value)
+}
+
+
 watch(() => props.status, (newVal) => {
   statusName.value = newVal?.name || ''
+  runValidation()
+}, { immediate: true })
+
+watch(statusName, () => {
+  runValidation()
 })
 
 const handleSubmit = () => {
+  runValidation()
+  if (hasErrors.value) return
   emit('update-status', {title: statusName.value})
   emit('close')
 }
+
+const hasErrors = computed(() =>
+    errorsInStatus.name
+)
 </script>
 
 <style scoped>
@@ -139,5 +169,19 @@ button {
 
 .cancel-btn:hover {
   background-color: #db1010;
+}
+
+.required {
+  color: red;
+}
+
+.error-message {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

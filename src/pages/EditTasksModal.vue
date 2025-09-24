@@ -6,7 +6,10 @@
       <form @submit.prevent="submit" class="modal__form">
         <h2 class="modal__title">Edit Task</h2>
 
+
+        <label for="task-title ">Title<span class="required">*</span></label>
         <input
+            id = "task-title "
             type="text"
             v-model="form.title"
             required
@@ -14,23 +17,30 @@
             class="modal__input"
         />
 
+        <p v-if="errorsInTaskTitle.name" class="error-message">{{ errorsInTaskTitle.name }}</p>
+
+        <label for="task-date ">Date<span class="required">*</span></label>
         <input
-            type="date"
+            id = "task-date "
             v-model="form.due_date"
             required
             class="modal__input"
         />
+        <p v-if="errorsInDate.name" class="error-message">{{ errorsInDate.name }}</p>
 
+        <label for="task-description ">Description<span class="required">*</span></label>
         <textarea
+            id = "task-description"
             placeholder="Task Description"
             v-model="form.description"
             required
             class="modal__textarea"
         ></textarea>
+        <p v-if="errorsInTaskDescription.name" class="error-message">{{ errorsInTaskDescription.name }}</p>
 
         <div class="modal__buttons">
           <button type="button" class="cancel-btn" @click="$emit('close')">Cancel</button>
-          <button type="submit" class="submit-btn">Save</button>
+          <button v-if="!hasErrors" type="submit" class="submit-btn">Save</button>
         </div>
       </form>
     </div>
@@ -39,7 +49,7 @@
 
 
 <script setup>
-import {ref, watch} from 'vue'
+import {computed, reactive, ref, watch} from 'vue'
 
 const props = defineProps({
   task: Object,
@@ -56,6 +66,54 @@ const form = ref({
   due_date: '',
   column_id: null
 })
+
+const errorsInTaskTitle = reactive({
+  name: ''
+})
+
+const errorsInDate = reactive({
+  name: ''
+})
+
+const errorsInTaskDescription = reactive({
+  name: ''
+})
+
+const validateTitle = (value) => {
+  if (!value) return "Title is required"
+  if (value.length < 5) return "Title must be at least 5 characters long"
+  return ""
+}
+
+const validateDescription = (value) => {
+  if (!value) return "Description is required"
+  if (value.length < 5) return "Description must be at least 5 characters long"
+  return ""
+}
+const validateDate = (value) => {
+  if (!value) return "Date is required"
+  return ""
+}
+
+const runValidation = () => {
+  errorsInTaskTitle.name = validateTitle(form.value.title)
+  errorsInTaskDescription.name = validateDescription(form.value.description)
+  errorsInDate.name = validateDate(form.value.due_date)
+}
+
+watch(() => form.value.title, (newValue) => {
+  errorsInTaskTitle.name = validateTitle(newValue)
+})
+
+watch(() => form.value.description, (newValue) => {
+  errorsInTaskDescription.name = validateDescription(newValue)
+})
+
+watch(() => form.value.due_date, (newValue) => {
+  errorsInDate.name = validateDate(newValue)
+})
+
+
 
 watch(
     [() => props.task, () => props.columnId],
@@ -75,12 +133,21 @@ watch(
           column_id: columnId
         }
       }
+      runValidation()
     },
     {immediate: true}
 )
 
+const hasErrors = computed(() =>
+    errorsInTaskTitle.name || errorsInTaskDescription.name || errorsInDate.name
+)
+
+
 const submit = () => {
-  emit('save', {...form.value})
+  runValidation()
+  if (!errorsInDate.name && !errorsInTaskTitle && !errorsInTaskDescription) {
+    emit('save', {...form.value})
+  }
   emit('close')
 }
 </script>
@@ -188,5 +255,19 @@ button {
 
 .cancel-btn:hover {
   background-color: #db1010;
+}
+
+.required {
+  color: red;
+}
+
+.error-message {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
