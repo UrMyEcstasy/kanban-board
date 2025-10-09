@@ -69,6 +69,7 @@ const showAdminModal = ref(false)
 const showBoardModal = ref(false)
 const currentBoardId = ref(null)
 const currentBoard = ref(null)
+const toast = ref('')
 
 const headerTitle = computed(() => {
   if (route.name === 'boardTasks' && tasksStore.board) {

@@ -139,16 +139,16 @@ watch(
 )
 
 const hasErrors = computed(() =>
-    errorsInTaskTitle.name || errorsInTaskDescription.name || errorsInDate.name
+    Boolean(errorsInTaskTitle.name || errorsInTaskDescription.name || errorsInDate.name)
 )
 
 
 const submit = () => {
   runValidation()
-  if (!errorsInDate.name && !errorsInTaskTitle && !errorsInTaskDescription) {
-    emit('save', {...form.value})
+  if (!errorsInDate.name && !errorsInTaskTitle.name && !errorsInTaskDescription.name) {
+    emit('save', { ...form.value })
+    emit('close')
   }
-  emit('close')
 }
 </script>
 

@@ -55,85 +55,78 @@
 </template>
 
 <script setup>
-import {computed, reactive, watch} from 'vue'
+  import {computed, reactive, watch} from 'vue'
 
-
-const props = defineProps({
+  const props = defineProps({
   visible: Boolean,
   board: Object
 })
 
-const emit = defineEmits(['close', 'save'])
+  const emit = defineEmits(['close', 'save'])
 
-const initialForm = {
+  const initialForm = {
   id: null,
   name: '',
   description: ''
 }
 
-const form = reactive({...initialForm})
+  const form = reactive({...initialForm})
 
-const errorsInBoardName = reactive({
-  name: ''
-})
+  const errorsInBoardName = reactive({name: ''})
+  const errorsInBoardDescription = reactive({name: ''})
 
-const errorsInBoardDescription = reactive({
-  name: ''
-})
-
-const validateName = (value) => {
-  if (!value) return "Board name is required"
-  if (value.length < 5) return "Name must be at least 5 characters long"
-  return ""
+  const validateName = (value) => {
+  if (!value) return 'Board name is required'
+  if (value.length < 5) return 'Name must be at least 5 characters long'
+  return ''
 }
 
-const validateDescription = (value) => {
-  if (!value) return "Description is required"
-  if (value.length < 5) return "Description must be at least 5 characters long"
-  return ""
+  const validateDescription = (value) => {
+  if (!value) return 'Description is required'
+  if (value.length < 5) return 'Description must be at least 5 characters long'
+  return ''
 }
 
-const runValidation = () => {
+  const runValidation = () => {
   errorsInBoardName.name = validateName(form.name)
   errorsInBoardDescription.name = validateDescription(form.description)
 }
 
-watch(() => form.name, (newValue) => {
+  watch(() => form.name, (newValue) => {
   errorsInBoardName.name = validateName(newValue)
 })
 
-watch(() => form.description, (newValue) => {
+  watch(() => form.description, (newValue) => {
   errorsInBoardDescription.name = validateDescription(newValue)
 })
 
-watch(
-    () => props.board,
-    (newBoard) => {
-      if (newBoard) {
-        form.id = newBoard.id
-        form.name = newBoard.name
-        form.description = newBoard.description
-      } else {
-        Object.assign(form, {...initialForm})
-      }
-      runValidation()
-    },
-    {immediate: true}
-)
-
-const hasErrors = computed(() =>
-    errorsInBoardName.name || errorsInBoardDescription.name
-)
-
-
-
-const submit = () => {
+  watch(
+  () => props.board,
+  (newBoard) => {
+  if (newBoard) {
+  form.id = newBoard.id
+  form.name = newBoard.name
+  form.description = newBoard.description
+} else {
+  Object.assign(form, {...initialForm})
+}
   runValidation()
-  if (!errorsInBoardName.name && !errorsInBoardDescription){
+},
+  {immediate: true}
+  )
+
+  const hasErrors = computed(() =>
+  Boolean(errorsInBoardName.name || errorsInBoardDescription.name)
+  )
+
+  const submit = () => {
+  runValidation()
+  if (!errorsInBoardName.name && !errorsInBoardDescription.name) {
   emit('save', {...form})
-  }
+}
 }
 </script>
+
 
 <style scoped>
 .modal {

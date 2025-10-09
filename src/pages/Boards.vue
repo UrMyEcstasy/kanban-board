@@ -67,6 +67,7 @@ const adminStore = useAdminStore()
 const myId = localStorage.getItem("userId")
 const showBoardModal = ref(false)
 const currentBoard = ref(null)
+const toast = ref('')
 
 const hasPermission = (boardId, userId, perm) => {
   return (adminStore.userPermissions[boardId]?.[userId] || []).includes(perm)
@@ -77,9 +78,11 @@ onMounted(async () => {
 
   if (myId && boards.value.length) {
     await adminStore.fetchMyPermissionsForBoards(boards.value, myId)
-    console.log("all permissions:", adminStore.userPermissions)
+  } else {
+    await adminStore.fetchMyPermissionsForBoards([], myId)
   }
 })
+
 
 
 const openEdit = (board) => {

@@ -20,8 +20,8 @@
         <p v-if="errorsInStatus.name" class="error-message">{{ errorsInStatus.name }}</p>
 
         <div class="modal__buttons">
-          <button v-if="!hasErrors"  type="submit" class="submit-btn">Enter</button>
           <button type="button" class="cancel-btn" @click="emit('close')">Cancel</button>
+          <button v-if="!hasErrors" type="submit" class="submit-btn">Enter</button>
         </div>
       </form>
     </div>
