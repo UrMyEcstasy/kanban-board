@@ -9,6 +9,7 @@
             v-if="route.name === 'boards'"
             class="add-project-btn"
             @click="openCreateModal"
+
         >
           New Board
         </button>
@@ -71,6 +72,20 @@ const currentBoardId = ref(null)
 const currentBoard = ref(null)
 const toast = ref('')
 
+//---- ДОБАВЛЕНИЕ ЯНДЕКС МЕТРИКИ ----//
+
+const METRIKA_ID = 105520667
+
+const trackGoal = (name) => {
+  if (typeof window !== 'undefined' && typeof window.ym === 'function') {
+    window.ym(METRIKA_ID, 'reachGoal', name)
+  } else {
+    console.warn('Yandex.Metrika не инициализирована')
+  }
+}
+
+// -------------------------------//
+
 const headerTitle = computed(() => {
   if (route.name === 'boardTasks' && tasksStore.board) {
     return tasksStore.board.name
@@ -88,6 +103,7 @@ const openAdminModal = async () => {
 }
 
 const openCreateModal = () => {
+  trackGoal('create_button_pushed')
   currentBoard.value = null
   showBoardModal.value = true
 }

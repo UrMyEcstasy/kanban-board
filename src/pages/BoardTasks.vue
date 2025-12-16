@@ -450,6 +450,10 @@ function showToast(message) {
   border-radius: 12px;
   padding: 16px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 650px; /* ограничение по высоте */
+  overflow: hidden;
 }
 
 
@@ -594,5 +598,10 @@ function showToast(message) {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   z-index: 2100;
+}
+.kanban__tasks {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 4px;
 }
 </style>

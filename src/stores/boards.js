@@ -65,7 +65,7 @@ export const useBoardsStore = defineStore('boards', () => {
     const deleteBoard = async (boardId) => {
         axios.delete(`${BASE_URL}/api/v1/user/${userId}/boards/${boardId}`, {
             headers: {
-                'X-Base-Auth': token
+                'npm ': token
             }
         })
             .then(function () {
